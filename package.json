@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/mikel-k-khui/tinyapp/issues"
   },
-  "homepage": "https://github.com/mikel-k-khui/tinyapp#readme"
+  "homepage": "https://github.com/mikel-k-khui/tinyapp#readme",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
 }
