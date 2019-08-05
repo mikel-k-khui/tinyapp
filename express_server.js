@@ -16,8 +16,18 @@ app.get("/urls.json", (req, res) => {
 });
 // return the JSON file of the URL database
 
-app.get('/hello', (requ resp) => {
+app.get("/hello", (requ, resp) => {
   resp.send(`<html><body>Hello <b>World</b></body></html>\n`);
+});
+//send respond about getting url for selected route
+
+app.get("/set", (req, res) => {
+  const a = 1;
+  res.send(`a = ${a}`);
+});
+
+app.get("/fetch", (req, res) => {
+  res.send(`a = ${a}`);
 });
 
 app.listen(PORT, () => {
