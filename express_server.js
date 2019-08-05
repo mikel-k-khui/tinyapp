@@ -31,17 +31,17 @@ app.get("/set", (req, res) => {
 
 app.get("/urls", (req, res) => {
   let template = { urls: urlDatabase };
-  console.log(`/urls: ${template}`);
+  // console.log(`/urls: ${template}`);
   res.render("urls_index", template);
   //ejs knows to automatically look for ejs in the views folder
 });
 // return the JSON file of the URL database
 
 app.get("/urls/:shortURL", (req, res) => {
-  let input = req.params.shortURL.startsWith(':') ? req.params.shortURL.slice(1) : req.params.shortURL;
-  console.log(input);
+  let input = req.params.shortURL;
+  // console.log(input);
   let template = { shortURL: input, longURL: urlDatabase[input]};
-  console.log(`/urls/:shortURL ${req.params.shortURL} \n for ${urlDatabase[input]}`);
+  // console.log(`/urls/:shortURL ${req.params.shortURL} \n for ${urlDatabase[input]}`);
 
   res.render("urls_show", template);
   //ejs knows to automatically look for ejs in the views folder
