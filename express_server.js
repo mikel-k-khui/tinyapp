@@ -2,7 +2,7 @@ const express = require("express");
 const app = express();
 const PORT = 8080;
 
-app.set("view enging", "ejs");
+app.set("view engine", "ejs");
 //setup Express app to use ejs as templating engine
 
 const urlDatabase = {
@@ -14,13 +14,13 @@ app.get("/", (request, response) => {
   response.end("Hello!");
 });
 
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
+app.get("/fetch", (req, res) => {
+  res.send(`a = ${a}`);
 });
-// return the JSON file of the URL database
 
 app.get("/hello", (requ, resp) => {
-  resp.send(`<html><body>Hello <b>World</b></body></html>\n`);
+  let template = { greeting : 'Hello World'};
+  resp.render("hello_world", template);
 });
 //send respond about getting url for selected route
 
@@ -29,9 +29,18 @@ app.get("/set", (req, res) => {
   res.send(`a = ${a}`);
 });
 
-app.get("/fetch", (req, res) => {
-  res.send(`a = ${a}`);
+app.get("/urls", (req, res) => {
+  let template = { urls: urlDatabase };
+  console.log(template);
+  res.render("urls_index", template);
+  //ejs knows to automatically look for ejs in the views folder
 });
+// return the JSON file of the URL database
+
+app.get("/urls.json", (req, res) => {
+  res.json(urlDatabase);
+});
+// return the JSON file of the URL database
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
