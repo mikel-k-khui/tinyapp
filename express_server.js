@@ -2,13 +2,13 @@ const express = require("express");
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const app = express();
-const PORT = 8080;
+const PORT = 8081;
 
 app.set("view engine", "ejs");
 //setup Express app to use ejs as templating engine
 
 app.use(bodyParser.urlencoded({extended: true}));
-app.use(cookieParser);
+app.use(cookieParser());
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -26,66 +26,23 @@ const addURL = function(address) {
   return newKey;
 };
 
-/*
-*
-*/
-app.get("/", (req, res) => {
-  res.redirect(302, '/urls');
+app.listen(PORT, () => {
+  console.log(`Example app listening on port ${PORT}!`);
 });
 
+//
 // app.get("/fetch", (req, res) => {
 //   res.send(`a = ${a}`);
 // });
-
-app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
-});
-
-app.get("/u/:shortURL", (req, res) => {
-  let longURL = urlDatabase[req.params.shortURL];
-  res.redirect(longURL);
-});
-
-app.get("/hello", (requ, resp) => {
-  let template = { greeting : 'Hello World'};
-  resp.render("hello_world", template);
-});
-//send respond about getting url for selected routes
-
-app.get("/set", (req, res) => {
-  const a = 1;
-  res.send(`a = ${a}`);
-});
-
+//
+/*
+* GET codes
+*/
 app.get("/urls", (req, res) => {
-  let template = { urls: urlDatabase };
-  // console.log(`/urls: ${template}`);
+  let template = { urls: urlDatabase, username: req.cookies["username"]};
+  
   res.render("urls_index", template);
   //ejs knows to automatically look for ejs in the views folder
-});
-// return the JSON file of the URL database
-
-
-app.get("/urls/:shortURL", (req, res) => {
-  let input = req.params.shortURL;
-  // console.log(input);
-  let template = { shortURL: input, longURL: urlDatabase[input]};
-  // console.log(`/urls/:shortURL ${req.params.shortURL} \n for ${urlDatabase[input]}`);
-
-  res.render("urls_show", template);
-  //ejs knows to automatically look for ejs in the views folder
-});
-// return the JSON file of the URL database
-
-
-
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
-});
-// return the JSON file of the URL databases
-
-app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
@@ -99,8 +56,50 @@ app.post("/urls/:shortURL/delete", (req, res) => {
     delete urlDatabase[req.params.shortURL];
   }
 
-  console.log(urlDatabase);
   res.redirect(302, '/urls'); //s/b 302?
+});
+
+app.get("/urls/new", (req, res) => {
+  let templateVar = req.cookies["username"];
+  res.render("urls_new", { username: templateVar});
+});
+
+app.get("/u/:shortURL", (req, res) => {
+  let longURL = urlDatabase[req.params.shortURL];
+    res.redirect(longURL);
+});
+
+app.get("/urls/:shortURL", (req, res) => {
+  let input = req.params.shortURL;
+  let template = { shortURL: input, longURL: urlDatabase[input], username: req.cookies["username"]};
+  // console.log(input);
+  // console.log(`/urls/:shortURL ${req.params.shortURL} \n for ${urlDatabase[input]}`);
+
+  res.render("urls_show", template);
+  //ejs knows to automatically look for ejs in the views folder
+});
+
+app.get("/hello", (requ, resp) => {
+  let template = { greeting : 'Hello World'};
+  resp.render("hello_world", template);
+});
+
+//send respond about getting url for selected routes
+//
+app.get("/set", (req, res) => {
+  const a = 1;
+  res.send(`a = ${a}`);
+});
+//
+
+app.get("/", (req, res) => {
+  res.redirect(302, '/urls');
+  // res.render("hello_world", { greeting: "Hello World"});
+});
+
+// return the JSON file of the URL database
+app.get("/urls.json", (req, res) => {
+  res.json(urlDatabase);
 });
 
 app.post("/urls/:id", (req, res) => {
@@ -114,7 +113,7 @@ app.post("/urls/:id", (req, res) => {
     urlDatabase[req.params.id] = req.body["newLongURL"];
   }
 
-  console.log(urlDatabase);
+  // console.log(urlDatabase);
   res.redirect(302, '/urls'); //s/b 302?
 });
 
@@ -128,14 +127,19 @@ app.post("/urls", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  console.log(req.body["userName"]);  // Log the POST request body to the console
-  // console.log(tempURL);  // Log the POST request body to the console
-
-  res.cookie('user-name', req.body["userName"]);
-  // console.log(req.cookies);
+  // console.log(req.body["username"]);  // Log the POST request body to the console
+ 
+  res.cookie('username', req.body["username"]);
   res.redirect(302, '/urls');
 });
 
+app.post("/logout", (req, res) => {
+  // console.log(req.body["username"]);  // Log the POST request body to the console
+ 
+  res.clearCookie("username");
+  res.redirect(302, '/urls');
+});
+ 
 app.post("*", (req, res) => {
   res.redirect(302, '/urls');
 });
