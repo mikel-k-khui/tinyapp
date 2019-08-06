@@ -1,6 +1,6 @@
 const express = require("express");
 const app = express();
-const PORT = 8080;
+const PORT = 8081;
 const bodyParser = require("body-parser");
 
 app.set("view engine", "ejs");
@@ -63,6 +63,7 @@ app.get("/urls", (req, res) => {
 });
 // return the JSON file of the URL database
 
+
 app.get("/urls/:shortURL", (req, res) => {
   let input = req.params.shortURL;
   // console.log(input);
@@ -74,6 +75,8 @@ app.get("/urls/:shortURL", (req, res) => {
 });
 // return the JSON file of the URL database
 
+
+
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
@@ -81,6 +84,21 @@ app.get("/urls.json", (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
+});
+
+app.post("/urls/:shortURL/delete", (req, res) => {
+  console.log(urlDatabase, req.params.shortURL);
+
+  if (urlDatabase === {}) {
+    res.end("There is no url in the database");
+  }
+
+  if (req.params.shortURL in urlDatabase) {
+    delete urlDatabase[req.params.shortURL];
+  }
+
+  console.log(urlDatabase);
+  res.redirect(302, '/urls'); //s/b 302?
 });
 
 app.post("/urls", (req, res) => {
