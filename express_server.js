@@ -13,11 +13,11 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
-function generateRandomString() {
-    return Math.floor((1 + Math.random()) * 0x1000 * 0x1000).toString(16).substring(1,7);
+const generateRandomString = function() {
+  return Math.floor((1 + Math.random()) * 0x1000 * 0x1000).toString(16).substring(1,7);
 };
 
-function addURL(address) {
+const addURL = function(address) {
   let newKey = generateRandomString();
   urlDatabase[newKey] = address;
   console.log(urlDatabase);
@@ -31,9 +31,9 @@ app.get("/", (request, response) => {
   response.end("Hello!");
 });
 
-app.get("/fetch", (req, res) => {
-  res.send(`a = ${a}`);
-});
+// app.get("/fetch", (req, res) => {
+//   res.send(`a = ${a}`);
+// });
 
 app.get("/urls/new", (req, res) => {
   res.render("urls_new");
@@ -101,10 +101,25 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   res.redirect(302, '/urls'); //s/b 302?
 });
 
+app.post("/urls/:id", (req, res) => {
+  console.log(urlDatabase, req.params.id);
+
+  if (urlDatabase === {}) {
+    res.end("There is no url in the database");
+  }
+
+  if (req.params.id in urlDatabase) {
+    urlDatabase[req.params.id] = req.body["newLongURL"];
+  }
+
+  console.log(urlDatabase);
+  res.redirect(302, '/urls'); //s/b 302?
+});
+
 app.post("/urls", (req, res) => {
   // console.log(req.body);  // Log the POST request body to the console
   let tempURL = 'urls/' + addURL(req.body["longURL"]);
-  console.log(tempURL);  // Log the POST request body to the console
+  // console.log(tempURL);  // Log the POST request body to the console
 
   res.redirect(302, tempURL);
   // res.send("Ok");         // Respond with 'Ok' (we will replace this)
