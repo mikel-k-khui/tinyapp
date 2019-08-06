@@ -1,12 +1,14 @@
 const express = require("express");
-const app = express();
-const PORT = 8081;
+const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
+const app = express();
+const PORT = 8080;
 
 app.set("view engine", "ejs");
 //setup Express app to use ejs as templating engine
 
 app.use(bodyParser.urlencoded({extended: true}));
+app.use(cookieParser);
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -27,8 +29,8 @@ const addURL = function(address) {
 /*
 *
 */
-app.get("/", (request, response) => {
-  response.end("Hello!");
+app.get("/", (req, res) => {
+  res.redirect(302, '/urls');
 });
 
 // app.get("/fetch", (req, res) => {
@@ -123,4 +125,17 @@ app.post("/urls", (req, res) => {
 
   res.redirect(302, tempURL);
   // res.send("Ok");         // Respond with 'Ok' (we will replace this)
+});
+
+app.post("/login", (req, res) => {
+  console.log(req.body["userName"]);  // Log the POST request body to the console
+  // console.log(tempURL);  // Log the POST request body to the console
+
+  res.cookie('user-name', req.body["userName"]);
+  // console.log(req.cookies);
+  res.redirect(302, '/urls');
+});
+
+app.post("*", (req, res) => {
+  res.redirect(302, '/urls');
 });
