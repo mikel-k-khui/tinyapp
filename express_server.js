@@ -22,7 +22,7 @@ const generateRandomString = function() {
 const addURL = function(address) {
   let newKey = generateRandomString();
   urlDatabase[newKey] = address;
-  console.log(urlDatabase);
+  // console.log(urlDatabase);
   return newKey;
 };
 
@@ -45,20 +45,6 @@ app.get("/urls", (req, res) => {
   //ejs knows to automatically look for ejs in the views folder
 });
 
-app.post("/urls/:shortURL/delete", (req, res) => {
-  console.log(urlDatabase, req.params.shortURL);
-
-  if (urlDatabase === {}) {
-    res.end("There is no url in the database");
-  }
-
-  if (req.params.shortURL in urlDatabase) {
-    delete urlDatabase[req.params.shortURL];
-  }
-
-  res.redirect(302, '/urls'); //s/b 302?
-});
-
 app.get("/urls/new", (req, res) => {
   let templateVar = req.cookies["username"];
   res.render("urls_new", { username: templateVar});
@@ -66,7 +52,7 @@ app.get("/urls/new", (req, res) => {
 
 app.get("/u/:shortURL", (req, res) => {
   let longURL = urlDatabase[req.params.shortURL];
-    res.redirect(longURL);
+  res.redirect(longURL);
 });
 
 app.get("/urls/:shortURL", (req, res) => {
@@ -93,7 +79,7 @@ app.get("/set", (req, res) => {
 //
 
 app.get("/", (req, res) => {
-  res.redirect(302, '/urls');
+  res.redirect('/urls');
   // res.render("hello_world", { greeting: "Hello World"});
 });
 
@@ -103,7 +89,7 @@ app.get("/urls.json", (req, res) => {
 });
 
 app.post("/urls/:id", (req, res) => {
-  console.log(urlDatabase, req.params.id);
+  // console.log(urlDatabase, req.params.id);
 
   if (urlDatabase === {}) {
     res.end("There is no url in the database");
@@ -114,16 +100,31 @@ app.post("/urls/:id", (req, res) => {
   }
 
   // console.log(urlDatabase);
-  res.redirect(302, '/urls'); //s/b 302?
+  res.redirect('/urls'); //s/b 302?
 });
 
+//Function to add a new URL to the database with a randomized ID
 app.post("/urls", (req, res) => {
   // console.log(req.body);  // Log the POST request body to the console
   let tempURL = 'urls/' + addURL(req.body["longURL"]);
-  // console.log(tempURL);  // Log the POST request body to the console
+  console.log(`new URL: ${tempURL}`);  // Log the POST request body to the console
 
-  res.redirect(302, tempURL);
+  res.redirect(tempURL);
   // res.send("Ok");         // Respond with 'Ok' (we will replace this)
+});
+
+app.post("/urls/:shortURL/delete", (req, res) => {
+  console.log(urlDatabase, req.params.shortURL);
+
+  if (urlDatabase === {}) {
+    res.end("There is no url in the database");
+  }
+
+  if (req.params.shortURL in urlDatabase) {
+    delete urlDatabase[req.params.shortURL];
+  }
+
+  res.redirect('/urls'); //s/b 302?
 });
 
 app.post("/login", (req, res) => {
