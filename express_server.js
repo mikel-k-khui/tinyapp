@@ -1,16 +1,21 @@
-// const users = {
-// }
+const bcrypt = require('bcrypt');
+
+const express = require("express");
+const cookieParser = require("cookie-parser");
+const bodyParser = require("body-parser");
+const app = express();
+const PORT = 8081;
 
 const users = {
   "1234": {
     id: "1234",
     email: "me@me.com",
-    password: "bob"
+    password: bcrypt.hashSync("bob", 10)
   },
   "abcd": {
     id: "abcd",
     email: "i@me.com",
-    password: "bob"
+    password: bcrypt.hashSync("bob", 10)
   }
 };
 
@@ -19,12 +24,6 @@ const urlDatabase = {
   "9sm5xK": { longURL: "http://www.google.com", userID: "1234"},
   "g82ms9": { longURL: "http://www.triathlon.org", userID: "abcd"}
 };
-
-const express = require("express");
-const cookieParser = require("cookie-parser");
-const bodyParser = require("body-parser");
-const app = express();
-const PORT = 8081;
 
 app.set("view engine", "ejs");
 //setup Express app to use ejs as templating engine
@@ -42,7 +41,7 @@ const addURL = function(address, user) {
   urlDatabase[newKey] = {};
   urlDatabase[newKey].longURL = address;
   urlDatabase[newKey].userID = user;
-  console.log(urlDatabase);
+  // console.log(urlDatabase);
   return newKey;
 };
 
@@ -64,7 +63,7 @@ const userIDExist = function(id) {
 };
 
 const regOK = function(email, password) {
-  // console.log(`email exists? ${emailExist(email)}`);
+  console.log(`email exists? ${emailExist(email)}`);
 
   return (emailExist(email) === false && email !== '' && password !== '') ? true : false;
 };
@@ -101,7 +100,7 @@ app.get("/urls/new", (req, res) => {
   if (templateVar.email) {
     res.render("urls_new", { email: templateVar.email });
   } else {
-    console.log("Not authorized: ", templateVar, "id:", req.cookies["user_id"]);
+    // console.log("Not authorized: ", templateVar, "id:", req.cookies["user_id"]);
     res.redirect(403, "/login");
   }
 });
@@ -116,7 +115,7 @@ app.get("/u/:shortURL", (req, res) => {
 //
 app.get("/urls/:shortURL", (req, res) => {
   let templateVar = {};
-  console.log(templateVar, "id:", req.cookies["user_id"]);
+  // console.log(templateVar, "id:", req.cookies["user_id"]);
 
   templateVar.email = userIDExist(req.cookies["user_id"]);
 
@@ -129,7 +128,7 @@ app.get("/urls/:shortURL", (req, res) => {
     templateVar.shortURL = input;
     templateVar.longURL = userUrls[input];
 
-    console.log("template var for edit page: ", templateVar);
+    // console.log("template var for edit page: ", templateVar);
 
     res.render("urls_show", templateVar);
     //ejs knows to automatically look for ejs in the views folder
@@ -261,7 +260,7 @@ app.post("/urls", (req, res) => {
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
-  console.log(urlDatabase, req.params.shortURL);
+  // console.log(urlDatabase, req.params.shortURL);
   let templateVar = {};
   // console.log(templateVar, "id:", req.cookies["user_id"]);
 
@@ -289,15 +288,18 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  // console.log(req.body["user_id"]);
-  let sysId = emailExist(req.body["address"]);
 
-  if (sysId === false || users[sysId].password !== req.body["password"]) {
+  let sysId = emailExist(req.body["address"]);
+  console.log("System id:", sysId, "password:", users[sysId].password);
+  console.log("User input email:", req.body["address"], "password:", req.body["password"]);
+  console.log(bcrypt.compareSync(req.body["password"], users[sysId].password));
+  
+  if (sysId === false || !bcrypt.compareSync(req.body["password"], users[sysId].password)) {
     console.log(`User info does not match: ${users[sysId].password} ${req.body["password"]}`);
 
     let templateVar = { status : 403, email: undefined};
     
-    res.redirect(403, res.render("urls_login", templateVar));
+    res.redirect("/login");
   } else {
     console.log(`User matched: ${users[sysId]} ${req.body["password"]}`);
     res.cookie("user_id", sysId);
@@ -312,7 +314,7 @@ app.post("/logout", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
-  // console.log(req.body["address"], req.body["password"]);
+  console.log(req.body["address"], req.body["password"]);
 
   let newUser = {};
 
@@ -331,12 +333,13 @@ app.post("/register", (req, res) => {
   
     newUser.id = id;
     newUser.email = req.body["address"];
-    newUser.password = req.body["password"];
+    newUser.password = bcrypt.hashSync(req.body["password"], 10);
+    // hashing with salt for 10 rounds
 
     users[id] = newUser;
     res.cookie('user_id', id);
 
-    console.log(users);
+    console.log("Check passwords are hash:", users);
     res.redirect(302, '/urls');
   }
 });
@@ -346,7 +349,6 @@ app.post("*", (req, res) => {
   // console.log(templateVar, "id:", req.cookies["user_id"]);
 
   templateVar.email = userIDExist(req.cookies["user_id"]);
-  // console.log(`any cookies? ${req.cookies["user_id"]}, `,users);
 
   //assumes users are not authorized
   if (templateVar.email) {
