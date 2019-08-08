@@ -2,6 +2,7 @@ const bcrypt = require('bcrypt');
 const express = require('express');
 const cookieSession = require('cookie-session');
 const bodyParser = require('body-parser');
+const methodOverride = require('method-override');
 const {
   getUserByEmail,
   generateRandomString,
@@ -22,6 +23,7 @@ app.use(cookieSession({
   keys: ['12345'],
   maxAge: 24 * 60 * 60 * 1000
 }));
+app.use(methodOverride('X-HTTP-Method-Override'));
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
