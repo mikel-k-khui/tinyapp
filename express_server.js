@@ -11,7 +11,7 @@ const { addURL,
 const app = express();
 const PORT = 8080;
 
-const { users, urlDatabase } = require('./constant');
+const { users, urlDatabase } = require('./constant'); // ACTION: comment out if pre-set data is not required
 
 app.set("view engine", "ejs");
 //setup Express app to use ejs as templating engine
