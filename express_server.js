@@ -2,12 +2,12 @@ const bcrypt = require('bcrypt');
 const express = require('express');
 const cookieSession = require('cookie-session');
 const bodyParser = require('body-parser');
-const { addURL,
+const {
   getUserByEmail,
   generateRandomString,
   regOK,
   urlsForUser,
-  userIDExist } = require('./helpers')
+  userIDExist } = require('./helpers');
 const app = express();
 const PORT = 8080;
 

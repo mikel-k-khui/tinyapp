@@ -1,5 +1,4 @@
 const bcrypt = require('bcrypt');
-const express = require('express');
 
 const users = {
   "1234": {
