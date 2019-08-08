@@ -195,6 +195,7 @@ app.post("/urls/:id", (req, res) => {
 //Function to add a new URL to the database with a randomized ID
 //then redirect the edit page
 app.post("/urls", (req, res) => {
+  console.log(req);
   userIDExist(req.session.userID) ?
     res.redirect('urls/' + addURL(req.body["longURL"], req.session.userID)) :
     res.redirect('/login');
@@ -208,14 +209,14 @@ app.post("/login", (req, res) => {
   } else {
     // res.cookie("user_id", sysId);
     req.session.userID = sysId;
-    // console.log("Login passwords are hash:", users, "and id still good:", req.session.userID);
+    console.log("what is in the cookie?", req.session);
     res.redirect('/urls');
   }
 });
 
 app.post("/logout", (req, res) => {
   req.session.userID = null;
-  res.redirect(302, '/urls');
+  res.redirect('/urls');
 });
 
 app.post("/register", (req, res) => {
@@ -234,13 +235,13 @@ app.post("/register", (req, res) => {
     req.session.userID = newUser.id;
 
     // console.log("Register's passwords are hash:", users, "and id still good:", req.session.userID);
-    res.redirect(302, '/urls');
+    res.redirect('/urls');
   }
 });
  
 app.post("*", (req, res) => {
   if (userIDExist(req.cookies["user_id"])) {
-    res.redirect(302, '/urls');
+    res.redirect('/urls');
   } else {
     res.redirect('/login');
   }
