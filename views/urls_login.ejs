@@ -14,9 +14,9 @@
 
     <% include partials/_headers %>
 
-    <main style="margin: 1em;">
-      <h3>Login</h3>
+    <main style="margin: 1em">
       <% if (status === 400) { %>
+        <h3>Login</h3>
        <form class="form-inline" action="/login" method="POST">
          <div class="form-group mb-2">
            <label for="address">Login with your registered email: </label>
@@ -27,6 +27,7 @@
          </div>
        </form>
       <% } else if (status === 403) { %>
+        <h3>Login: Try again</h3>
         <form class="form-inline" action="/login" method="POST">
           <div class="form-group mb-2">
             <label for="address">You have entered incorrect address or password, please try again:</label>
@@ -37,6 +38,7 @@
           </div>
         </form>
       <% } else { %>
+        <h3>Register</h3>
         <form class="form-inline" action="/register" method="POST">
           <div class="form-group mb-2">
             <label for="address">Enter address to create account:</label>

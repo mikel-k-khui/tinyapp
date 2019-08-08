@@ -52,7 +52,6 @@ const addURL = function(address, user) {
 const emailExist = function(email) {
   let found = false;
   for (const user in users) {
-    // console.log(users[user].email, email);
     if (users[user].email === email) {
       found = user;
       break;
@@ -61,23 +60,18 @@ const emailExist = function(email) {
   return found;
 };
 
-const userIDExist = function(id) {
-  return (id in users) ? users[id].email : undefined
-};
+const userIDExist = (id) => (id in users) ? users[id].email : undefined;
 
-const regOK = function(email, password) {
-  console.log(`email exists? ${emailExist(email)}`);
-
-  return (emailExist(email) === false && email !== '' && password !== '') ? true : false;
-};
+const regOK = (email, password) => (
+  emailExist(email) === false &&
+  email !== '' &&
+  password !== '');
 
 const urlsForUser = function(userID) {
   let userURLs = {};
   for (const url in urlDatabase) {
     if (urlDatabase[url]["userID"] === userID) {
-      // console.log("In url loop:", urlDatabase[url]["longURL"], urlDatabase[url]["userID"]);
       userURLs[url] = urlDatabase[url]["longURL"];
-      // console.log("End of url loop:", userURLs);
     }
   }
   return userURLs;
@@ -94,272 +88,152 @@ app.listen(PORT, () => {
 //
 // User request to add a new long url from the header
 app.get("/urls/new", (req, res) => {
-  let templateVar = {};
-  // console.log(templateVar, "id:", req.session.user_id);
-
-  templateVar.email = userIDExist(req.session.user_id);
-
-  //assumes users are not authorized
-  if (templateVar.email) {
-    res.render("urls_new", { email: templateVar.email });
-  } else {
-    // console.log("Not authorized: ", templateVar, "id:", req.session.user_id);
-    res.redirect(403, "/login");
-  }
+  (userIDExist(req.session.userID)) ?
+    res.render("urls_new", { email: userIDExist(req.session.userID) }) :
+    res.redirect('/login');
 });
 
 //any user can visit a shorterned URL provided by an authorized user
 app.get("/u/:shortURL", (req, res) => {
-  if (req.params.shortURL in urlDatabase) {
-    res.redirect(urlDatabase[req.params.shortURL].longURL);
-  }
+  (req.params.shortURL in urlDatabase) ? res.redirect(urlDatabase[req.params.shortURL].longURL) : res.send({ error: "URL not found"});
 });
 
-//
 app.get("/urls/:shortURL", (req, res) => {
-  let templateVar = {};
-  // console.log(templateVar, "id:", req.session.user_id);
-
-  templateVar.email = userIDExist(req.session.user_id);
-
   //assumes users are not authorized
-  if (templateVar.email) {
-    let input = req.params.shortURL;
-    let userUrls = urlsForUser(req.session.user_id);
-
-    // console.log("What is available to user?", userUrls, " input:", input);
-    templateVar.shortURL = input;
-    templateVar.longURL = userUrls[input];
-
-    // console.log("template var for edit page: ", templateVar);
-
+  if (userIDExist(req.session.userID)) {
+    let templateVar = {
+      shortURL: req.params.shortURL,
+      longURL: urlsForUser(req.session.userID)[req.params.shortURL],
+      email: userIDExist(req.session.userID)
+    };
     res.render("urls_show", templateVar);
-    //ejs knows to automatically look for ejs in the views folder
   } else {
-    res.redirect(403, "/login");
+    res.redirect('/login');
   }
 });
 
-app.get("/hello", (requ, resp) => {
-  let templateVar = { greeting : 'Hello World'};
-  resp.render("hello_world", templateVar);
-});
+app.get("/hello", (requ, resp) => resp.render("hello_world", { greeting : 'Hello World'}));
 
 //send respond about getting url for selected routes
-app.get("/set", (req, res) => {
-  const a = 1;
-  res.send(`a = ${a}`);
-});
+// app.get("/set", (req, res) => {
+//   const a = 1;
+//   res.send(`a = ${a}`);
+// });
 
 // return the JSON file of the URL database
-app.get("/urls.json", (req, res) => {
-  // console.log(userIDExist(req.session.user_id));
-  if (userIDExist(req.session.user_id)) {
-    res.json(urlDatabase);
-  } else {
-    res.redirect(403, "/login");
-  }
-});
+app.get("/urls.json", (req, res) => (userIDExist(req.session.userID)) ? res.json(urlDatabase) : res.redirect('/login'));
 
 // redirect to index page with the url table
 app.get("/urls", (req, res) => {
-  
-  let templateVar = {};
-  // console.log(templateVar, "id:", req.session.user_id);
-
-  templateVar.email = userIDExist(req.session.user_id);
-  console.log(`any cookies? ${req.session.user_id}, `,users);
-
-  //assumes users are not authorized
-  if (templateVar.email) {
-    templateVar.urls = urlsForUser(req.session.user_id);
+  if (userIDExist(req.session.userID)) {
+    let templateVar = {
+      urls: urlsForUser(req.session.userID),
+      email: userIDExist(req.session.userID)
+    };
     res.render("urls_index", templateVar);
   //ejs knows to automatically look for ejs in the views folder
-  } else {
-    res.redirect(403, '/login');
-    //should we send user to a nicer page?
   }
+  res.render('urls_login', { status: 200, email: undefined });
 });
 
 // send user to the register page upon clicking the button
 app.get("/register", (req, res) => {
-  let templateVar = { status: 200, email: undefined };
-  
-  if (req.session.user_id) {
-    templateVar.email = users[req.session.user_id].email;
-  }
-
-  res.render("urls_login", templateVar);
+  (req.session.userID) ?
+    res.render("urls_login", { status: 200, email: users[req.session.userID].email }) :
+    res.render("urls_login", { status: 200, email: undefined });
 });
 
 // send user to the register page upon clicking the button
 app.get("/login", (req, res) => {
-  let templateVar = { status: 400, email: undefined};
-  
-  if (req.session.user_id) {
-    templateVar.email = users[req.session.user_id].email;
-  }
-
-  res.render("urls_login", templateVar);
+  (req.session.userID) ?
+    res.render("urls_login", { status: 400, email: users[req.session.userID].email }) :
+    res.render("urls_login", { status: 400, email: undefined });
 });
 
-app.get("/", (req, res) => {
-  res.redirect('/urls');
-  // res.render("hello_world", { greeting: "Hello World"});
-});
+app.get("/", (req, res) => res.redirect('/urls'));
+// res.render("hello_world", { greeting: "Hello World"});
 
 //
 // POST codes
 //
+//allow user to delete
+app.post("/urls/:shortURL/delete", (req, res) => {
+  let userURLs = urlsForUser(req.session.userID);
+
+  if (userIDExist(req.session.userID) && req.params.shortURL in userURLs) {
+    delete urlDatabase[req.params.shortURL];
+    //delete the url
+    res.redirect('/urls');
+  } else {
+    res.redirect('/login');
+  }
+});
 // allow (authorized) user to edit an existing long URL
 app.post("/urls/:id", (req, res) => {
-  // console.log(urlDatabase, req.params.id);
+  if (userIDExist(req.session.userID) && urlDatabase !== {}) {
+    let userURLs = urlsForUser(req.session.userID);
 
-  let templateVar = {};
-  // console.log(templateVar, "id:", req.session.user_id);
-
-  templateVar.email = userIDExist(req.session.user_id);
-  // console.log(`any cookies? ${req.session.user_id}, `,users);
-
-  //assumes users are not authorized
-  if (templateVar.email) {
-    if (urlDatabase === {}) {
-      res.end("There is no url in the database");
-    }
-
-    let userURLs = urlsForUser(req.session.user_id);
-    // console.log("Page parameter:", req.params.id);
     if (req.params.id in userURLs) {
       urlDatabase[req.params.id]["longURL"] = req.body["newLongURL"];
       res.redirect('/urls');
     } else {
-      redirect(404, '/urls');
-      // url id not found
+      res.redirect('/urls');
     }
   } else {
-    res.redirect(403, '/login');
+    res.redirect('/login');
   }
 });
 
 //Function to add a new URL to the database with a randomized ID
 //then redirect the edit page
 app.post("/urls", (req, res) => {
-  let templateVar = {};
-  // console.log(templateVar, "id:", req.session.user_id);
-
-  templateVar.email = userIDExist(req.session.user_id);
-  // console.log(`any cookies? ${req.session.user_id}, `,users);
-
-  //assumes users are not authorized
-  if (templateVar.email) {
-    let tempURL = 'urls/' + addURL(req.body["longURL"], req.session.user_id);
-    console.log(`new URL: ${tempURL}`);  // Log the POST request body to the console
-
-    res.redirect(tempURL);
-    //redirect users to the new page /urls/
-  } else {
-    res.redirect('/urls'); //s/b 302?
-  }
-});
-
-app.post("/urls/:shortURL/delete", (req, res) => {
-  // console.log(urlDatabase, req.params.shortURL);
-  let templateVar = {};
-  // console.log(templateVar, "id:", req.session.user_id);
-
-  templateVar.email = userIDExist(req.session.user_id);
-  // console.log(`any cookies? ${req.session.user_id}, `,users);
-
-  //assumes users are not authorized
-  if (templateVar.email) {
-    if (urlDatabase === {}) {
-      res.end("There is no url in the database");
-    }
-    
-    let userURLs = urlsForUser(req.session.user_id);
-    // look for a list of user's URL for security check
-    
-    if (req.params.shortURL in userURLs) {
-      delete urlDatabase[req.params.shortURL];
-    }
-    //delete the url
-
-    res.redirect('/urls'); //s/b 302?
-  } else {
-    res.redirect(403, '/login');
-  }
+  userIDExist(req.session.userID) ?
+    res.redirect('urls/' + addURL(req.body["longURL"], req.session.userID)) :
+    res.redirect('/login');
 });
 
 app.post("/login", (req, res) => {
-
   let sysId = emailExist(req.body["address"]);
-  console.log("System id:", sysId, "password:", users[sysId].password);
-  console.log("User input email:", req.body["address"], "password:", req.body["password"]);
-  console.log(bcrypt.compareSync(req.body["password"], users[sysId].password));
-  
-  if (sysId === false || !bcrypt.compareSync(req.body["password"], users[sysId].password)) {
-    console.log(`User info does not match: ${users[sysId].password} ${req.body["password"]}`);
 
-    let templateVar = { status : 403, email: undefined};
-    
-    res.redirect("/login");
+  if (sysId === false || !bcrypt.compareSync(req.body["password"], users[sysId].password)) {
+    res.redirect('/login');
   } else {
-    console.log(`User matched: ${users[sysId]} ${req.body["password"]}`);
     // res.cookie("user_id", sysId);
-    req.session.user_id = sysId;
-    res.redirect(302, '/urls');
+    req.session.userID = sysId;
+    // console.log("Login passwords are hash:", users, "and id still good:", req.session.userID);
+    res.redirect('/urls');
   }
 });
 
 app.post("/logout", (req, res) => {
-  // console.log(req.body["req.session.user_id"]);  // Log the POST request body to the console
-  // res.clearCookie(user_id");
-  req.session.user_id = null;
+  req.session.userID = null;
   res.redirect(302, '/urls');
 });
 
 app.post("/register", (req, res) => {
-  console.log(req.body["address"], req.body["password"]);
-
-  let newUser = {};
-
-  newUser.email = req.body["address"];
-  newUser.password = req.body["password"];
-  // console.log(users);
-
-  if (regOK(newUser.email, newUser.password) === false) {
-    console.log("User exists and send to login page:", users);
-    let templateVar = { status : 400, email: undefined};
-
-    res.redirect(400, res.render("urls_login", templateVar));
+  if (regOK(req.body["address"], req.body["password"]) === false) {
+    res.redirect('/login');
+    //user email already exists
   } else {
-
-    let id = generateRandomString(5);
-  
-    newUser.id = id;
-    newUser.email = req.body["address"];
-    newUser.password = bcrypt.hashSync(req.body["password"], 10);
+    let newUser = {
+      id: generateRandomString(5),
+      email: req.body["address"],
+      password: bcrypt.hashSync(req.body["password"], 10)
     // hashing with salt for 10 rounds
+    };
 
-    users[id] = newUser;
-    // res.cookie('req.session.user_id', id);
-    req.session.user_id = newUser.id;
+    users[newUser["id"]] = newUser;
+    req.session.userID = newUser.id;
 
-    console.log("Check passwords are hash:", users);
+    // console.log("Register's passwords are hash:", users, "and id still good:", req.session.userID);
     res.redirect(302, '/urls');
   }
 });
  
 app.post("*", (req, res) => {
-  let templateVar = {};
-  // console.log(templateVar, "id:", req.cookies["user_id"]);
-
-  templateVar.email = userIDExist(req.cookies["user_id"]);
-
-  //assumes users are not authorized
-  if (templateVar.email) {
+  if (userIDExist(req.cookies["user_id"])) {
     res.redirect(302, '/urls');
   } else {
-    res.redirect(403, '/login');
+    res.redirect('/login');
   }
 });
