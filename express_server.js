@@ -23,14 +23,7 @@ app.use(cookieSession({
   maxAge: 24 * 60 * 60 * 1000
 }));
 
-app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
-});
-
-//
 // GET codes
-//
-// User request to add a new long url from the header
 app.get("/urls/new", (req, res) => {
   (userIDExist(req.session.userID, users)) ?
     res.render("urls_new", { email: userIDExist(req.session.userID, users) }) :
@@ -63,14 +56,6 @@ app.get("/urls/:shortURL", (req, res) => {
     res.redirect(401, '/login');
   }
 });
-
-app.get("/hello", (requ, resp) => resp.render("hello_world", { greeting : 'Hello World'}));
-
-//send respond about getting url for selected routes
-// app.get("/set", (req, res) => {
-//   const a = 1;
-//   res.send(`a = ${a}`);
-// });
 
 // return the JSON file of the URL database
 app.get("/urls.json", (req, res) => (userIDExist(req.session.userID, users)) ? res.json(urlDatabase) : res.redirect('/login'));
@@ -117,11 +102,8 @@ app.get("*", (req, res) => {
   }
 });
 
-// res.render("hello_world", { greeting: "Hello World"});
-
-//
 // POST codes
-//
+
 //allow user to delete
 app.post("/urls/:shortURL/delete", (req, res) => {
   if (userIDExist(req.session.userID, users) && urlDatabase !== {}) {
@@ -154,7 +136,6 @@ app.post("/urls/:id", (req, res) => {
 //Function to add a new URL to the database with a randomized ID
 //then redirect the edit page
 app.post("/urls", (req, res) => {
-  // console.log(req);
   if (userIDExist(req.session.userID, users)) {
     let newKey = generateRandomString(7);
     urlDatabase[newKey] = {};
@@ -208,4 +189,8 @@ app.post("*", (req, res) => {
   } else {
     res.redirect('/login');
   }
+});
+
+app.listen(PORT, () => {
+  console.log(`Example app listening on port ${PORT}!`);
 });
