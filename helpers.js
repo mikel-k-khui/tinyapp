@@ -5,10 +5,10 @@ const generateRandomString = function(length) {
 
 //check if the email eixsts in the users
 const getUserByEmail = function(email, usersDatabase) {
-  let found = false;
+  let found = {};
   for (const user in usersDatabase) {
     if (usersDatabase[user].email === email) {
-      found = user;
+      found = usersDatabase[user];
       break;
     }
   }

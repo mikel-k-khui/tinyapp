@@ -170,10 +170,10 @@ app.post("/urls", (req, res) => {
 app.post("/login", (req, res) => {
   let sysId = getUserByEmail(req.body["address"], users);
 
-  if (sysId === false || req.body["password"] === '' || !bcrypt.compareSync(req.body["password"], users[sysId].password)) {
+  if (sysId === {} || req.body["password"] === '' || !bcrypt.compareSync(req.body["password"], sysId["password"])) {
     res.redirect(401, 'Login error /login');
   } else {
-    req.session.userID = sysId;
+    req.session.userID = sysId["id"];
     res.redirect('/urls');
   }
 });
