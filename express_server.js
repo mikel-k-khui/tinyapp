@@ -1,7 +1,6 @@
 const bcrypt = require('bcrypt');
-
 const express = require("express");
-const cookieParser = require("cookie-parser");
+const cookieSession = require("cookie-session");
 const bodyParser = require("body-parser");
 const app = express();
 const PORT = 8081;
@@ -29,7 +28,11 @@ app.set("view engine", "ejs");
 //setup Express app to use ejs as templating engine
 
 app.use(bodyParser.urlencoded({extended: true}));
-app.use(cookieParser());
+app.use(cookieSession({
+  name: 'session',
+  keys: ['12345'],
+  maxAge: 24 * 60 * 60 * 1000
+}));
 
 const generateRandomString = function(length) {
   return Math.floor((1 + Math.random()) * 0x1000 * 0x1000).toString(16).substring(1,length);
@@ -92,15 +95,15 @@ app.listen(PORT, () => {
 // User request to add a new long url from the header
 app.get("/urls/new", (req, res) => {
   let templateVar = {};
-  // console.log(templateVar, "id:", req.cookies["user_id"]);
+  // console.log(templateVar, "id:", req.session.user_id);
 
-  templateVar.email = userIDExist(req.cookies["user_id"]);
+  templateVar.email = userIDExist(req.session.user_id);
 
   //assumes users are not authorized
   if (templateVar.email) {
     res.render("urls_new", { email: templateVar.email });
   } else {
-    // console.log("Not authorized: ", templateVar, "id:", req.cookies["user_id"]);
+    // console.log("Not authorized: ", templateVar, "id:", req.session.user_id);
     res.redirect(403, "/login");
   }
 });
@@ -115,14 +118,14 @@ app.get("/u/:shortURL", (req, res) => {
 //
 app.get("/urls/:shortURL", (req, res) => {
   let templateVar = {};
-  // console.log(templateVar, "id:", req.cookies["user_id"]);
+  // console.log(templateVar, "id:", req.session.user_id);
 
-  templateVar.email = userIDExist(req.cookies["user_id"]);
+  templateVar.email = userIDExist(req.session.user_id);
 
   //assumes users are not authorized
   if (templateVar.email) {
     let input = req.params.shortURL;
-    let userUrls = urlsForUser(req.cookies["user_id"]);
+    let userUrls = urlsForUser(req.session.user_id);
 
     // console.log("What is available to user?", userUrls, " input:", input);
     templateVar.shortURL = input;
@@ -150,8 +153,8 @@ app.get("/set", (req, res) => {
 
 // return the JSON file of the URL database
 app.get("/urls.json", (req, res) => {
-  // console.log(userIDExist(req.cookies["user_id"]));
-  if (userIDExist(req.cookies["user_id"])) {
+  // console.log(userIDExist(req.session.user_id));
+  if (userIDExist(req.session.user_id)) {
     res.json(urlDatabase);
   } else {
     res.redirect(403, "/login");
@@ -162,14 +165,14 @@ app.get("/urls.json", (req, res) => {
 app.get("/urls", (req, res) => {
   
   let templateVar = {};
-  // console.log(templateVar, "id:", req.cookies["user_id"]);
+  // console.log(templateVar, "id:", req.session.user_id);
 
-  templateVar.email = userIDExist(req.cookies["user_id"]);
-  console.log(`any cookies? ${req.cookies["user_id"]}, `,users);
+  templateVar.email = userIDExist(req.session.user_id);
+  console.log(`any cookies? ${req.session.user_id}, `,users);
 
   //assumes users are not authorized
   if (templateVar.email) {
-    templateVar.urls = urlsForUser(req.cookies["user_id"]);
+    templateVar.urls = urlsForUser(req.session.user_id);
     res.render("urls_index", templateVar);
   //ejs knows to automatically look for ejs in the views folder
   } else {
@@ -182,8 +185,8 @@ app.get("/urls", (req, res) => {
 app.get("/register", (req, res) => {
   let templateVar = { status: 200, email: undefined };
   
-  if (req.cookies["user_id"]) {
-    templateVar.email = users[req.cookies["user_id"]].email;
+  if (req.session.user_id) {
+    templateVar.email = users[req.session.user_id].email;
   }
 
   res.render("urls_login", templateVar);
@@ -193,8 +196,8 @@ app.get("/register", (req, res) => {
 app.get("/login", (req, res) => {
   let templateVar = { status: 400, email: undefined};
   
-  if (req.cookies["user_id"]) {
-    templateVar.email = users[req.cookies["user_id"]].email;
+  if (req.session.user_id) {
+    templateVar.email = users[req.session.user_id].email;
   }
 
   res.render("urls_login", templateVar);
@@ -213,10 +216,10 @@ app.post("/urls/:id", (req, res) => {
   // console.log(urlDatabase, req.params.id);
 
   let templateVar = {};
-  // console.log(templateVar, "id:", req.cookies["user_id"]);
+  // console.log(templateVar, "id:", req.session.user_id);
 
-  templateVar.email = userIDExist(req.cookies["user_id"]);
-  // console.log(`any cookies? ${req.cookies["user_id"]}, `,users);
+  templateVar.email = userIDExist(req.session.user_id);
+  // console.log(`any cookies? ${req.session.user_id}, `,users);
 
   //assumes users are not authorized
   if (templateVar.email) {
@@ -224,7 +227,7 @@ app.post("/urls/:id", (req, res) => {
       res.end("There is no url in the database");
     }
 
-    let userURLs = urlsForUser(req.cookies["user_id"]);
+    let userURLs = urlsForUser(req.session.user_id);
     // console.log("Page parameter:", req.params.id);
     if (req.params.id in userURLs) {
       urlDatabase[req.params.id]["longURL"] = req.body["newLongURL"];
@@ -242,14 +245,14 @@ app.post("/urls/:id", (req, res) => {
 //then redirect the edit page
 app.post("/urls", (req, res) => {
   let templateVar = {};
-  // console.log(templateVar, "id:", req.cookies["user_id"]);
+  // console.log(templateVar, "id:", req.session.user_id);
 
-  templateVar.email = userIDExist(req.cookies["user_id"]);
-  // console.log(`any cookies? ${req.cookies["user_id"]}, `,users);
+  templateVar.email = userIDExist(req.session.user_id);
+  // console.log(`any cookies? ${req.session.user_id}, `,users);
 
   //assumes users are not authorized
   if (templateVar.email) {
-    let tempURL = 'urls/' + addURL(req.body["longURL"], req.cookies["user_id"]);
+    let tempURL = 'urls/' + addURL(req.body["longURL"], req.session.user_id);
     console.log(`new URL: ${tempURL}`);  // Log the POST request body to the console
 
     res.redirect(tempURL);
@@ -262,10 +265,10 @@ app.post("/urls", (req, res) => {
 app.post("/urls/:shortURL/delete", (req, res) => {
   // console.log(urlDatabase, req.params.shortURL);
   let templateVar = {};
-  // console.log(templateVar, "id:", req.cookies["user_id"]);
+  // console.log(templateVar, "id:", req.session.user_id);
 
-  templateVar.email = userIDExist(req.cookies["user_id"]);
-  // console.log(`any cookies? ${req.cookies["user_id"]}, `,users);
+  templateVar.email = userIDExist(req.session.user_id);
+  // console.log(`any cookies? ${req.session.user_id}, `,users);
 
   //assumes users are not authorized
   if (templateVar.email) {
@@ -273,7 +276,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
       res.end("There is no url in the database");
     }
     
-    let userURLs = urlsForUser(req.cookies["user_id"]);
+    let userURLs = urlsForUser(req.session.user_id);
     // look for a list of user's URL for security check
     
     if (req.params.shortURL in userURLs) {
@@ -302,14 +305,16 @@ app.post("/login", (req, res) => {
     res.redirect("/login");
   } else {
     console.log(`User matched: ${users[sysId]} ${req.body["password"]}`);
-    res.cookie("user_id", sysId);
+    // res.cookie("user_id", sysId);
+    req.session.user_id = sysId;
     res.redirect(302, '/urls');
   }
 });
 
 app.post("/logout", (req, res) => {
-  // console.log(req.body["user_id"]);  // Log the POST request body to the console
-  res.clearCookie("user_id");
+  // console.log(req.body["req.session.user_id"]);  // Log the POST request body to the console
+  // res.clearCookie(user_id");
+  req.session.user_id = null;
   res.redirect(302, '/urls');
 });
 
@@ -337,7 +342,8 @@ app.post("/register", (req, res) => {
     // hashing with salt for 10 rounds
 
     users[id] = newUser;
-    res.cookie('user_id', id);
+    // res.cookie('req.session.user_id', id);
+    req.session.user_id = newUser.id;
 
     console.log("Check passwords are hash:", users);
     res.redirect(302, '/urls');
