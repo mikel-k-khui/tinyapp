@@ -1,7 +1,13 @@
 const bcrypt = require('bcrypt');
-const express = require("express");
-const cookieSession = require("cookie-session");
-const bodyParser = require("body-parser");
+const express = require('express');
+const cookieSession = require('cookie-session');
+const bodyParser = require('body-parser');
+// const { addURL,
+//   emailExist,
+//   generateRandomString,
+//   regOK,
+//   urlsForUser,
+//   userIDExist } = require('./helpers')
 const app = express();
 const PORT = 8081;
 
@@ -34,6 +40,7 @@ app.use(cookieSession({
   maxAge: 24 * 60 * 60 * 1000
 }));
 
+//Helper functions
 const generateRandomString = function(length) {
   return Math.floor((1 + Math.random()) * 0x1000 * 0x1000).toString(16).substring(1,length);
 };
@@ -76,6 +83,7 @@ const urlsForUser = function(userID) {
   }
   return userURLs;
 };
+
 
 // console.log(regOK("i@me.com", users["1234"].password));
 app.listen(PORT, () => {
