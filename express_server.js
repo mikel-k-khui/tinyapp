@@ -23,7 +23,6 @@ app.use(cookieSession({
   maxAge: 24 * 60 * 60 * 1000
 }));
 
-// console.log(regOK("i@me.com", users["1234"].password));
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
