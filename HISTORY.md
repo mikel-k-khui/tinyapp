@@ -6,5 +6,9 @@ Received feedback on major functionality issues due to registration logic not wo
     - Code should be (Object.keys(getUserByEmail).length as the strict comparison will return the object type instead of value
   - Double-checked all existing codes with {} to ensure all syntax are fixed
 
+Received feedback to move the app.listen() to bottom of the code as best practice:
+  - investigating with mentors as to reason
+  - current hypothesis is to remove any syntax errors along the way before the server is launched
+
 # *1.0.0 / 2019-08-08 @1415*
 Submitted file
