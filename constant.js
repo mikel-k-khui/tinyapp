@@ -14,9 +14,16 @@ const users = {
 };
 
 const urlDatabase = {
-  "b2xVn2": { longURL: "http://www.lighthouselabs.ca", userID: "1234" },
-  "9sm5xK": { longURL: "http://www.google.com", userID: "1234"},
-  "g82ms9": { longURL: "http://www.triathlon.org", userID: "abcd"}
+  "b2xVn2": { longURL: "http://www.lighthouselabs.ca", userID: "1234", created: "Thu Aug 8 2019" },
+  "9sm5xK": { longURL: "http://www.google.com", userID: "1234", created: "Thu Aug 1 2019"},
+  "g82ms9": { longURL: "http://www.triathlon.org", userID: "abcd", created: "Wed Aug 7 2019"}
 };
 
-module.exports = { users, urlDatabase };
+let visitorDatabase = {
+  "g82ms9": { totVis: 1, uniVis: 1, visits: { visitor_id: Date.now() - (15 * 60 * 1000) }}
+
+};
+// example
+// <url key>: { <totVis>: ###, <uniVis>: ###, >visitors>: { <visitor_id>: <random>, <timestamp>: <time>}}
+
+module.exports = { users, urlDatabase, visitorDatabase };
